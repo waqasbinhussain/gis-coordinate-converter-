@@ -108,4 +108,6 @@ Developed by **Waqas Bin Hussain**
 ## 🚀 Hosting
 
 - Hosted on [Streamlit Cloud](https://share.streamlit.io)
-- Live Demo: [https://waqasbinhussain-gis-coordinate-converter.streamlit.app/](https://waqasbinhussain-gis-coordinate-converter.streamlit.app/)
+- Live Demo: [https://gis-coordinate-converter.streamlit.app/](https://gis-coordinate-converter.streamlit.app/)
+
+
