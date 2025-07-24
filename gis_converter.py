@@ -92,8 +92,7 @@ st.markdown("*Note: The x and y values can be in either Decimal Degrees or DMS f
 uploaded_file = st.file_uploader("Choose a CSV or Excel file", type=["csv", "xlsx"])
 
 if "csv_converted" not in st.session_state:
-    st.session_state["csv_converted"] = False
-if "csv_df" not in st.session_state:
+    if "csv_df" not in st.session_state:
     st.session_state["csv_df"] = None
 
 if uploaded_file:
