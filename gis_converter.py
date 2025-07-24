@@ -138,7 +138,7 @@ if uploaded_file:
                 st.session_state["csv_df"] = df
             except Exception as e:
                 st.error(f"Error during CSV conversion: {e}")
-        st.error(f"Failed to read CSV: {e}")
+        # st.error(f"Failed to read CSV: {e}")
 
 if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
     df = st.session_state["csv_df"]
