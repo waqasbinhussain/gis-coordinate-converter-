@@ -16,7 +16,7 @@ CRS_OPTIONS = {
 }
 
 st.set_page_config(page_title="GIS Coordinate Converter", layout="centered")
-st.title("\ud83d\udccd GIS Coordinate Converter")
+st.title("GIS Coordinate Converter")
 
 # CRS selection
 input_label = st.selectbox("Input CRS", list(CRS_OPTIONS.keys()))
