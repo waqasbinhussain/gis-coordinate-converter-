@@ -112,10 +112,9 @@ if uploaded_file:
                     continue
             if df is None or df.empty or df.columns.size == 1:
                 st.error("Failed to read the file. Please ensure it's a valid CSV with headers: Location_Name, x, y")
-
-                
-    
+            else:
                 st.session_state["csv_df"] = df
+                st.session_state["csv_converted"] = False
         st.session_state["csv_converted"] = False
 
         if st.button("Convert Now", key="convert_csv_btn"):
