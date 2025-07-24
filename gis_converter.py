@@ -113,27 +113,30 @@ if uploaded_file:
         if df is None or df.empty or df.columns.size == 1:
             st.error("Failed to read the file. Please ensure it's a valid CSV with headers: Location_Name, x, y")
         else:
-            df['x_dd'] = df['x'].apply(parse_coordinate)
-            df['y_dd'] = df['y'].apply(parse_coordinate)
-            transformer = Transformer.from_crs(input_crs, output_crs, always_xy=True)
-            df['x_converted'], df['y_converted'] = zip(*df.apply(
-                lambda row: transformer.transform(row['x_dd'], row['y_dd']), axis=1))
-
-            to_wgs = Transformer.from_crs(output_crs, "EPSG:4326", always_xy=True)
-            df['lon_wgs'], df['lat_wgs'] = zip(*df.apply(
-                lambda row: to_wgs.transform(row['x_converted'], row['y_converted']), axis=1))
-
-            st.session_state["csv_converted"] = True
-            st.session_state["csv_df"] = df
-
-            st.markdown("### ✅ Converted Coordinates Preview")
+            st.markdown("### ✅ Uploaded File Preview")
             st.dataframe(df)
+            if st.button("Convert Now", key="convert_csv_btn"):
+                df['x_dd'] = df['x'].apply(parse_coordinate)
+                df['y_dd'] = df['y'].apply(parse_coordinate)
+                transformer = Transformer.from_crs(input_crs, output_crs, always_xy=True)
+                df['x_converted'], df['y_converted'] = zip(*df.apply(
+                    lambda row: transformer.transform(row['x_dd'], row['y_dd']), axis=1))
+
+                to_wgs = Transformer.from_crs(output_crs, "EPSG:4326", always_xy=True)
+                df['lon_wgs'], df['lat_wgs'] = zip(*df.apply(
+                    lambda row: to_wgs.transform(row['x_converted'], row['y_converted']), axis=1))
+
+                st.session_state["csv_converted"] = True
+                st.session_state["csv_df"] = df
 
     except Exception as e:
         st.error(f"Error reading uploaded file: {e}")
 
 if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
     df = st.session_state["csv_df"]
+    st.success("CSV Converted Successfully")
+    st.markdown("### ✅ Converted Coordinates Preview")
+    st.dataframe(df)
 
     try:
         csv_out = df.to_csv(index=False).encode('utf-8')
