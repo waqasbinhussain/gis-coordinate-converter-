@@ -117,7 +117,7 @@ if uploaded_file:
 
                 df = pd.read_csv(uploaded_file, encoding='ISO-8859-1', sep=',', on_bad_lines='skip', engine='python')
                 if df.empty or df.columns.size == 1:
-                    raise ValueError("No columns to parse from file. Please ensure it is comma-separated and contains headers: Location_Name, x, y")
+                    raise ValueError("No columns detected in the file. Ensure it has headers: Location_Name, x, y and is comma-separated.")
     
         st.session_state["csv_df"] = df
         st.session_state["csv_converted"] = False
