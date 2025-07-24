@@ -1,11 +1,11 @@
 import zipfile
+
 import io
 import streamlit as st
 import pandas as pd
 from pyproj import Transformer
 import folium
 from streamlit_folium import st_folium
-import re
 
 # Supported Coordinate Systems
 CRS_OPTIONS = {
@@ -16,7 +16,7 @@ CRS_OPTIONS = {
 }
 
 st.set_page_config(page_title="GIS Coordinate Converter", layout="centered")
-st.title("GIS Coordinate Converter")
+st.title("📍 GIS Coordinate Converter")
 
 # CRS selection
 input_label = st.selectbox("Input CRS", list(CRS_OPTIONS.keys()))
@@ -27,51 +27,31 @@ output_crs = CRS_OPTIONS[output_label]
 
 st.divider()
 
-# Function to convert DMS string to decimal degrees
-def dms_to_dd(dms_str):
-    match = re.match(r"(\d+)[^\d]+(\d+)[^\d]+([\d\.]+)\"?([NSEW]?)", dms_str.strip())
-    if not match:
-        return None
-    degrees, minutes, seconds, direction = match.groups()
-    dd = float(degrees) + float(minutes)/60 + float(seconds)/3600
-    if direction in ['S', 'W']:
-        dd = -dd
-    return dd
-
-# Convert safely: handle both decimal and DMS
-def parse_coordinate(value):
-    try:
-        return float(value)
-    except:
-        return dms_to_dd(str(value))
-
 # --- Single Point Conversion ---
-st.markdown("### Convert a Single Coordinate")
+st.markdown("### 📝 Convert a Single Coordinate")
 col1, col2 = st.columns(2)
 with col1:
-    x = st.text_input("Longitude / Easting (X)", value="51.531", help="Supports Decimal Degrees or DMS format like 51°36'25.0\"E")
+    x = st.number_input("Longitude / Easting (X)", value=51.531, key="x_input")
 with col2:
-    y = st.text_input("Latitude / Northing (Y)", value="25.285", help="Supports Decimal Degrees or DMS format like 25°10'24.17\"N")
+    y = st.number_input("Latitude / Northing (Y)", value=25.285, key="y_input")
 
 if st.button("Convert Single Point", key="convert_single_btn"):
     try:
-        x_parsed = parse_coordinate(x)
-        y_parsed = parse_coordinate(y)
         transformer = Transformer.from_crs(input_crs, output_crs, always_xy=True)
-        x_out, y_out = transformer.transform(x_parsed, y_parsed)
+        x_out, y_out = transformer.transform(x, y)
         st.session_state["converted"] = True
-        st.session_state["x_in"] = x_parsed
-        st.session_state["y_in"] = y_parsed
+        st.session_state["x_in"] = x
+        st.session_state["y_in"] = y
         st.session_state["x_out"] = x_out
         st.session_state["y_out"] = y_out
     except Exception as e:
-        st.error(f"Conversion Error: {e}")
+        st.error(f"❌ Conversion Error: {e}")
         st.session_state["converted"] = False
 
 if st.session_state.get("converted"):
-    st.success("Converted Successfully")
+    st.success("✅ Converted Successfully")
     st.code(f"Converted X: {st.session_state['x_out']:.6f}, Y: {st.session_state['y_out']:.6f}")
-    st.markdown("### Map View")
+    st.markdown("### 🌍 Map View")
     try:
         m = folium.Map(location=[st.session_state["y_in"], st.session_state["x_in"]], zoom_start=13)
         folium.Marker([st.session_state["y_in"], st.session_state["x_in"]],
@@ -82,70 +62,57 @@ if st.session_state.get("converted"):
                       icon=folium.Icon(color="green")).add_to(m)
         st_folium(m, width=700, height=500)
     except Exception as e:
-        st.warning(f"Map preview failed: {e}")
+        st.warning(f"🟡 Map preview failed: {e}")
 
 st.divider()
 
-# --- CSV Upload Conversion ---
-st.markdown("### Upload a CSV File with Columns: Location_Name, x, y")
-st.markdown("*Note: The x and y values can be in either Decimal Degrees or DMS format like `51°36'25.0\"N`, `25°10'24.17\"N`*")
-uploaded_file = st.file_uploader("Choose a CSV or Excel file", type=["csv", "xlsx"])
+# --- CSV Upload Conversion with Button Trigger and Session State ---
+st.markdown("### 📤 Upload a CSV File with Columns: Location_Name, x, y")
+uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
 
 if "csv_converted" not in st.session_state:
     st.session_state["csv_converted"] = False
 if "csv_df" not in st.session_state:
-    st.session_state["csv_df"] = None  # initialize correctly
+    st.session_state["csv_df"] = None
 
 if uploaded_file:
     try:
-        if uploaded_file.name.endswith('.xlsx'):
-            df = pd.read_excel(uploaded_file)
+        df = pd.read_csv(uploaded_file)
+        required_columns = {'Location_Name', 'x', 'y'}
+        if not required_columns.issubset(df.columns):
+            st.error("CSV must contain 'Location_Name', 'x', and 'y' columns.")
         else:
-            df = None
-            for encoding in ['utf-8', 'utf-8-sig', 'ISO-8859-1']:
+            st.dataframe(df)
+
+            if st.button("Convert Now", key="convert_csv_btn"):
                 try:
-                    df = pd.read_csv(uploaded_file, encoding=encoding)
-                    if df.empty or df.columns.size == 1:
-                        continue
-                    break
-                except Exception:
-                    continue
-            if df is None or df.empty or df.columns.size == 1:
-                st.error("Failed to read the file. Please ensure it's a valid CSV with headers: Location_Name, x, y")
-            else:
-                st.session_state["csv_df"] = df
-                        
-        if st.button("Convert Now", key="convert_csv_btn"):
-            try:
-                df['x_dd'] = df['x'].apply(parse_coordinate)
-                df['y_dd'] = df['y'].apply(parse_coordinate)
-                transformer = Transformer.from_crs(input_crs, output_crs, always_xy=True)
-                df['x_converted'], df['y_converted'] = zip(*df.apply(
-                    lambda row: transformer.transform(row['x_dd'], row['y_dd']), axis=1))
+                    transformer = Transformer.from_crs(input_crs, output_crs, always_xy=True)
+                    df['x_converted'], df['y_converted'] = zip(*df.apply(
+                        lambda row: transformer.transform(row['x'], row['y']), axis=1))
 
-                to_wgs = Transformer.from_crs(output_crs, "EPSG:4326", always_xy=True)
-                df['lon_wgs'], df['lat_wgs'] = zip(*df.apply(
-                    lambda row: to_wgs.transform(row['x_converted'], row['y_converted']), axis=1))
+                    to_wgs = Transformer.from_crs(output_crs, "EPSG:4326", always_xy=True)
+                    df['lon_wgs'], df['lat_wgs'] = zip(*df.apply(
+                        lambda row: to_wgs.transform(row['x_converted'], row['y_converted']), axis=1))
 
-                st.session_state["csv_converted"] = True
-                st.session_state["csv_df"] = df
-            except Exception as e:
-                st.error(f"Error during CSV conversion: {e}")
-        # st.error(f"Failed to read CSV: {e}")
+                    st.session_state["csv_converted"] = True
+                    st.session_state["csv_df"] = df
+                except Exception as e:
+                    st.error(f"❌ Error during CSV conversion: {e}")
 
     except Exception as e:
-        st.error(f"Error reading uploaded file: {e}")
+        st.error(f"❌ Failed to read CSV: {e}")
 
 if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
     df = st.session_state["csv_df"]
-    df = st.session_state["csv_df"]
-    st.success("CSV Converted Successfully")
+    st.success("✅ CSV Converted Successfully")
     st.dataframe(df)
 
     csv_out = df.to_csv(index=False).encode('utf-8')
-    st.download_button("Download Converted CSV", csv_out,
+    st.download_button("📥 Download Converted CSV", csv_out,
                        file_name="converted_coordinates.csv", mime='text/csv')
 
+
+    # --- KMZ Export ---
     try:
         from xml.etree.ElementTree import Element, SubElement, tostring
         from xml.dom.minidom import parseString
@@ -169,16 +136,18 @@ if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
         pretty_kml = parseString(kml_str).toprettyxml(indent="  ")
         kml_filename = "converted_points.kml"
 
+        # Create KMZ
         kmz_buffer = io.BytesIO()
         with zipfile.ZipFile(kmz_buffer, 'w', zipfile.ZIP_DEFLATED) as kmz:
             kmz.writestr(kml_filename, pretty_kml)
 
-        st.download_button("Export as KMZ for Google Earth", data=kmz_buffer.getvalue(),
+        st.download_button("🌍 Export as KMZ for Google Earth", data=kmz_buffer.getvalue(),
                            file_name="converted_points.kmz", mime="application/vnd.google-earth.kmz")
     except Exception as e:
-        st.warning(f"Could not generate KMZ: {e}")
+        st.warning(f"🟡 Could not generate KMZ: {e}")
 
-    st.markdown("### Map View of Converted Points (WGS84)")
+
+    st.markdown("### 🌍 Map View of Converted Points (WGS84)")
     try:
         m = folium.Map(location=[df['lat_wgs'].iloc[0], df['lon_wgs'].iloc[0]], zoom_start=10)
         for i, row in df.iterrows():
@@ -190,11 +159,11 @@ if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
             ).add_to(m)
         st_folium(m, width=700, height=500)
     except Exception as e:
-        st.warning(f"Could not display map: {e}")
+        st.warning(f"🟡 Could not display map: {e}")
 
 st.markdown("---")
 st.markdown(
     "<p style='text-align: center; color: gray;'>Developed by <b>Waqas Bin Hussain</b><br>"
-    "<a href='https://www.linkedin.com/in/waqasbinhussain/' target='_blank' style='text-decoration: none; color: #0a66c2;'>Connect on LinkedIn</a></p>",
+    "<a href='https://www.linkedin.com/in/waqasbinhussain/' target='_blank' style='text-decoration: none; color: #0a66c2;'>🔗 Connect on LinkedIn</a></p>",
     unsafe_allow_html=True
 )
