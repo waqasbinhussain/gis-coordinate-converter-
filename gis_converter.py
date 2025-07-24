@@ -46,7 +46,7 @@ def parse_coordinate(value):
         return dms_to_dd(str(value))
 
 # --- Single Point Conversion ---
-st.markdown("### \ud83d\udcdd Convert a Single Coordinate")
+st.markdown("### Convert a Single Coordinate")
 col1, col2 = st.columns(2)
 with col1:
     x = st.text_input("Longitude / Easting (X)", value="51.531", key="x_input")
@@ -65,13 +65,13 @@ if st.button("Convert Single Point", key="convert_single_btn"):
         st.session_state["x_out"] = x_out
         st.session_state["y_out"] = y_out
     except Exception as e:
-        st.error(f"\u274c Conversion Error: {e}")
+        st.error(f"Conversion Error: {e}")
         st.session_state["converted"] = False
 
 if st.session_state.get("converted"):
-    st.success("\u2705 Converted Successfully")
+    st.success("Converted Successfully")
     st.code(f"Converted X: {st.session_state['x_out']:.6f}, Y: {st.session_state['y_out']:.6f}")
-    st.markdown("### \ud83c\udf0d Map View")
+    st.markdown("### Map View")
     try:
         m = folium.Map(location=[st.session_state["y_in"], st.session_state["x_in"]], zoom_start=13)
         folium.Marker([st.session_state["y_in"], st.session_state["x_in"]],
@@ -82,12 +82,12 @@ if st.session_state.get("converted"):
                       icon=folium.Icon(color="green")).add_to(m)
         st_folium(m, width=700, height=500)
     except Exception as e:
-        st.warning(f"\ud83d\udfe1 Map preview failed: {e}")
+        st.warning(f"Map preview failed: {e}")
 
 st.divider()
 
 # --- CSV Upload Conversion ---
-st.markdown("### \ud83d\udcc4 Upload a CSV File with Columns: Location_Name, x, y")
+st.markdown("### Upload a CSV File with Columns: Location_Name, x, y")
 uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
 
 if "csv_converted" not in st.session_state:
@@ -119,18 +119,18 @@ if uploaded_file:
                     st.session_state["csv_converted"] = True
                     st.session_state["csv_df"] = df
                 except Exception as e:
-                    st.error(f"\u274c Error during CSV conversion: {e}")
+                    st.error(f"Error during CSV conversion: {e}")
 
     except Exception as e:
-        st.error(f"\u274c Failed to read CSV: {e}")
+        st.error(f"Failed to read CSV: {e}")
 
 if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
     df = st.session_state["csv_df"]
-    st.success("\u2705 CSV Converted Successfully")
+    st.success("CSV Converted Successfully")
     st.dataframe(df)
 
     csv_out = df.to_csv(index=False).encode('utf-8')
-    st.download_button("\ud83d\udcc5 Download Converted CSV", csv_out,
+    st.download_button("Download Converted CSV", csv_out,
                        file_name="converted_coordinates.csv", mime='text/csv')
 
     try:
@@ -160,12 +160,12 @@ if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
         with zipfile.ZipFile(kmz_buffer, 'w', zipfile.ZIP_DEFLATED) as kmz:
             kmz.writestr(kml_filename, pretty_kml)
 
-        st.download_button("\ud83c\udf0d Export as KMZ for Google Earth", data=kmz_buffer.getvalue(),
+        st.download_button("Export as KMZ for Google Earth", data=kmz_buffer.getvalue(),
                            file_name="converted_points.kmz", mime="application/vnd.google-earth.kmz")
     except Exception as e:
-        st.warning(f"\ud83d\udfe1 Could not generate KMZ: {e}")
+        st.warning(f"Could not generate KMZ: {e}")
 
-    st.markdown("### \ud83c\udf0d Map View of Converted Points (WGS84)")
+    st.markdown("### Map View of Converted Points (WGS84)")
     try:
         m = folium.Map(location=[df['lat_wgs'].iloc[0], df['lon_wgs'].iloc[0]], zoom_start=10)
         for i, row in df.iterrows():
@@ -177,11 +177,11 @@ if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
             ).add_to(m)
         st_folium(m, width=700, height=500)
     except Exception as e:
-        st.warning(f"\ud83d\udfe1 Could not display map: {e}")
+        st.warning(f"Could not display map: {e}")
 
 st.markdown("---")
 st.markdown(
     "<p style='text-align: center; color: gray;'>Developed by <b>Waqas Bin Hussain</b><br>"
-    "<a href='https://www.linkedin.com/in/waqasbinhussain/' target='_blank' style='text-decoration: none; color: #0a66c2;'>\ud83d\udd17 Connect on LinkedIn</a></p>",
+    "<a href='https://www.linkedin.com/in/waqasbinhussain/' target='_blank' style='text-decoration: none; color: #0a66c2;'>Connect on LinkedIn</a></p>",
     unsafe_allow_html=True
 )
