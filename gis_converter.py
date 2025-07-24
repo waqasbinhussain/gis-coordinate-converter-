@@ -93,6 +93,7 @@ uploaded_file = st.file_uploader("Choose a CSV or Excel file", type=["csv", "xls
 
 if "csv_converted" not in st.session_state:
     if "csv_df" not in st.session_state:
+    st.session_state["csv_df"] = None  # initialize correctlyate:
     st.session_state["csv_df"] = None
 
 if uploaded_file:
