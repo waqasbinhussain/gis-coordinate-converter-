@@ -118,7 +118,26 @@ if uploaded_file:
                 df = pd.read_csv(uploaded_file, encoding='ISO-8859-1', sep=',', on_bad_lines='skip', engine='python')
                 if df.empty or df.columns.size == 1:
                     raise ValueError("No columns to parse from file. Please ensure it is comma-separated and contains headers: Location_Name, x, y")
-    except Exception as e:
+    
+        st.session_state["csv_df"] = df
+        st.session_state["csv_converted"] = False
+
+        if st.button("Convert Now", key="convert_csv_btn"):
+            try:
+                df['x_dd'] = df['x'].apply(parse_coordinate)
+                df['y_dd'] = df['y'].apply(parse_coordinate)
+                transformer = Transformer.from_crs(input_crs, output_crs, always_xy=True)
+                df['x_converted'], df['y_converted'] = zip(*df.apply(
+                    lambda row: transformer.transform(row['x_dd'], row['y_dd']), axis=1))
+
+                to_wgs = Transformer.from_crs(output_crs, "EPSG:4326", always_xy=True)
+                df['lon_wgs'], df['lat_wgs'] = zip(*df.apply(
+                    lambda row: to_wgs.transform(row['x_converted'], row['y_converted']), axis=1))
+
+                st.session_state["csv_converted"] = True
+                st.session_state["csv_df"] = df
+            except Exception as e:
+                st.error(f"Error during CSV conversion: {e}")
         st.error(f"Failed to read CSV: {e}")
 
 if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
