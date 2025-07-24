@@ -49,9 +49,9 @@ def parse_coordinate(value):
 st.markdown("### Convert a Single Coordinate")
 col1, col2 = st.columns(2)
 with col1:
-    x = st.text_input("Longitude / Easting (X)", value="51.531", key="x_input")
+    x = st.text_input("Longitude / Easting (X)", value="51.531", help="Supports Decimal Degrees or DMS format like 51°36'25.0\"E")
 with col2:
-    y = st.text_input("Latitude / Northing (Y)", value="25.285", key="y_input")
+    y = st.text_input("Latitude / Northing (Y)", value="25.285", help="Supports Decimal Degrees or DMS format like 25°10'24.17\"N")
 
 if st.button("Convert Single Point", key="convert_single_btn"):
     try:
@@ -88,6 +88,7 @@ st.divider()
 
 # --- CSV Upload Conversion ---
 st.markdown("### Upload a CSV File with Columns: Location_Name, x, y")
+st.markdown("*Note: The x and y values can be in either Decimal Degrees or DMS format like `51°36'25.0\"N`, `25°10'24.17\"N`*")
 uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
 
 if "csv_converted" not in st.session_state:
