@@ -114,12 +114,7 @@ if uploaded_file:
                     df = pd.read_csv(uploaded_file, encoding='ISO-8859-1', sep=',', on_bad_lines='skip', engine='python')
                     if df.empty or df.columns.size == 1:
                         raise ValueError("No columns to parse from file. Please ensure it is comma-separated and contains headers: Location_Name, x, y")
-        except Exception:
-            try:
-                df = pd.read_csv(uploaded_file, encoding='utf-8-sig')
-                if df.empty or df.columns.size == 1:
-                    raise ValueError("Empty or malformed CSV")
-            except Exception:
+
                 df = pd.read_csv(uploaded_file, encoding='ISO-8859-1', sep=',', on_bad_lines='skip', engine='python')
                 if df.empty or df.columns.size == 1:
                     raise ValueError("No columns to parse from file. Please ensure it is comma-separated and contains headers: Location_Name, x, y")
