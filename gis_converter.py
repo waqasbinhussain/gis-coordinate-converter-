@@ -108,18 +108,7 @@ if uploaded_file:
                 if df.empty or df.columns.size == 1:
                     raise ValueError("Empty or malformed CSV")
             except Exception:
-                df = pd.read_csv(uploaded_file, encoding='ISO-8859-1', sep=None, engine='python')
-            df = pd.read_csv(uploaded_file, encoding='utf-8')
-            if df.empty or df.columns.size == 1:
-                raise ValueError("Empty or malformed CSV")
-        except Exception:
-            try:
-                df = pd.read_csv(uploaded_file, encoding='utf-8-sig')
-                if df.empty or df.columns.size == 1:
-                    raise ValueError("Empty or malformed CSV")
-            except Exception:
-                df = pd.read_csv(uploaded_file, encoding='ISO-8859-1', sep=None, engine='python')
-
+                df = pd.read_csv(uploaded_file, encoding='ISO-8859-1', sep=',')
     except Exception as e:
         st.error(f"Failed to read CSV: {e}")
 
