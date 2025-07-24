@@ -119,12 +119,12 @@ if uploaded_file:
                 df['x_dd'] = df['x'].apply(parse_coordinate)
                 df['y_dd'] = df['y'].apply(parse_coordinate)
                 transformer = Transformer.from_crs(input_crs, output_crs, always_xy=True)
-                df['x_converted'], df['y_converted'] = zip(*df.apply(
+                df[output_crs + '_x'], df[output_crs + '_y'] = zip(*df.apply(
                     lambda row: transformer.transform(row['x_dd'], row['y_dd']), axis=1))
 
                 to_wgs = Transformer.from_crs(output_crs, "EPSG:4326", always_xy=True)
                 df['lon_wgs'], df['lat_wgs'] = zip(*df.apply(
-                    lambda row: to_wgs.transform(row['x_converted'], row['y_converted']), axis=1))
+                    lambda row: to_wgs.transform(row[output_crs + '_x'], row[output_crs + '_y']), axis=1))
 
                 st.session_state["csv_converted"] = True
                 st.session_state["csv_df"] = df
@@ -158,7 +158,7 @@ if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
             name.text = str(row['Location_Name'])
 
             description = SubElement(placemark, 'description')
-            description.text = f"Converted X: {str(row['x_converted'])}, Y: {str(row['y_converted'])}"
+            description.text = f"Converted X: {str(row[output_crs + '_x'])}, Y: {str(row[output_crs + '_y'])}"
 
             point = SubElement(placemark, 'Point')
             coordinates = SubElement(point, 'coordinates')
@@ -184,7 +184,7 @@ if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
             folium.Marker(
                 [row['lat_wgs'], row['lon_wgs']],
                 tooltip=row['Location_Name'],
-                popup=f"{row['Location_Name']}\nX: {row['x_converted']:.5f}, Y: {row['y_converted']:.5f}",
+                popup=f"{row['Location_Name']}\nX: {row[output_crs + '_x']:.5f}, Y: {row[output_crs + '_y']:.5f}",
                 icon=folium.Icon(color="green", icon="ok-sign"),
             ).add_to(m)
         st_folium(m, width=700, height=500)
