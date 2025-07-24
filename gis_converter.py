@@ -113,17 +113,6 @@ if uploaded_file:
         if df is None or df.empty or df.columns.size == 1:
             st.error("Failed to read the file. Please ensure it's a valid CSV with headers: Location_Name, x, y")
         else:
-            st.session_state["csv_df"] = df
-            st.markdown("### ✅ Uploaded File Preview")
-            st.dataframe(df)
-
-    except Exception as e:
-        st.error(f"Error reading uploaded file: {e}")
-
-if st.session_state["csv_df"] is not None:
-    df = st.session_state["csv_df"]
-    if st.button("Convert Now", key="convert_csv_btn"):
-        try:
             df['x_dd'] = df['x'].apply(parse_coordinate)
             df['y_dd'] = df['y'].apply(parse_coordinate)
             transformer = Transformer.from_crs(input_crs, output_crs, always_xy=True)
@@ -136,14 +125,15 @@ if st.session_state["csv_df"] is not None:
 
             st.session_state["csv_converted"] = True
             st.session_state["csv_df"] = df
-        except Exception as e:
-            st.error(f"Error during CSV conversion: {e}")
+
+            st.markdown("### ✅ Converted Coordinates Preview")
+            st.dataframe(df)
+
+    except Exception as e:
+        st.error(f"Error reading uploaded file: {e}")
 
 if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
     df = st.session_state["csv_df"]
-    st.success("CSV Converted Successfully")
-    st.markdown("### ✅ Converted Coordinates Preview")
-    st.dataframe(df)
 
     try:
         csv_out = df.to_csv(index=False).encode('utf-8')
