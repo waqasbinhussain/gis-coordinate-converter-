@@ -98,13 +98,14 @@ if "csv_df" not in st.session_state:
 
 if uploaded_file:
     try:
-                try:
+        try:
             df = pd.read_csv(uploaded_file, encoding='utf-8')
         except UnicodeDecodeError:
             try:
                 df = pd.read_csv(uploaded_file, encoding='utf-8-sig')
             except UnicodeDecodeError:
                 df = pd.read_csv(uploaded_file, encoding='ISO-8859-1')
+
         required_columns = {'Location_Name', 'x', 'y'}
         if not required_columns.issubset(df.columns):
             st.error("CSV must contain 'Location_Name', 'x', and 'y' columns.")
