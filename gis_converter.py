@@ -101,17 +101,17 @@ if uploaded_file:
         if uploaded_file.name.endswith('.xlsx'):
             df = pd.read_excel(uploaded_file)
         else:
-            try:
-                df = pd.read_csv(uploaded_file, encoding='utf-8')
-                if df.empty or df.columns.size == 1:
-                    raise ValueError("Empty or malformed CSV")
-            except Exception:
+            df = None
+            for encoding in ['utf-8', 'utf-8-sig', 'ISO-8859-1']:
                 try:
-                    df = pd.read_csv(uploaded_file, encoding='utf-8-sig')
+                    df = pd.read_csv(uploaded_file, encoding=encoding)
                     if df.empty or df.columns.size == 1:
-                        raise ValueError("Empty or malformed CSV")
+                        continue
+                    break
                 except Exception:
-                                        pass  # intentionally left blank after exception to avoid IndentationError
+                    continue
+            if df is None or df.empty or df.columns.size == 1:
+                st.error("Failed to read the file. Please ensure it's a valid CSV with headers: Location_Name, x, y")
 
                 # Removed duplicate parsing fallback
     
