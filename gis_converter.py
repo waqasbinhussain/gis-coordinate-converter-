@@ -25,6 +25,9 @@ input_crs = CRS_OPTIONS[input_label]
 output_label = st.selectbox("Output CRS", list(CRS_OPTIONS.keys()))
 output_crs = CRS_OPTIONS[output_label]
 
+# Derive output prefix label from user-friendly output_label
+output_prefix = output_label.split("(")[0].strip().replace(" ", "_")
+
 st.divider()
 
 # Function to convert DMS string to decimal degrees
@@ -120,7 +123,6 @@ if uploaded_file:
                 df['y_dd'] = df['y'].apply(parse_coordinate)
                 transformer = Transformer.from_crs(input_crs, output_crs, always_xy=True)
 
-                output_prefix = output_label.split("(")[0].strip().replace(" ", "_")
                 df[output_prefix + '_x'], df[output_prefix + '_y'] = zip(*df.apply(
                     lambda row: transformer.transform(row['x_dd'], row['y_dd']), axis=1))
 
