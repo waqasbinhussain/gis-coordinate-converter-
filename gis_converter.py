@@ -98,6 +98,9 @@ if "csv_df" not in st.session_state:
 
 if uploaded_file:
     try:
+        st.markdown("### ✅ Uploaded File Preview")
+        st.markdown("### ✅ Converted Coordinates Preview")
+    st.dataframe(df)
         if uploaded_file.name.endswith('.xlsx'):
             df = pd.read_excel(uploaded_file)
         else:
@@ -137,7 +140,6 @@ if uploaded_file:
         st.error(f"Error reading uploaded file: {e}")
 
 if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
-    df = st.session_state["csv_df"]
     df = st.session_state["csv_df"]
     st.success("CSV Converted Successfully")
     st.dataframe(df)
