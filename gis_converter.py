@@ -92,9 +92,9 @@ st.markdown("*Note: The x and y values can be in either Decimal Degrees or DMS f
 uploaded_file = st.file_uploader("Choose a CSV or Excel file", type=["csv", "xlsx"])
 
 if "csv_converted" not in st.session_state:
-    if "csv_df" not in st.session_state:
-    st.session_state["csv_df"] = None  # initialize correctlyate:
-    st.session_state["csv_df"] = None
+    st.session_state["csv_converted"] = False
+if "csv_df" not in st.session_state:
+    st.session_state["csv_df"] = None  # initialize correctly
 
 if uploaded_file:
     try:
@@ -137,6 +137,7 @@ if uploaded_file:
         st.error(f"Error reading uploaded file: {e}")
 
 if st.session_state["csv_converted"] and st.session_state["csv_df"] is not None:
+    df = st.session_state["csv_df"]
     df = st.session_state["csv_df"]
     st.success("CSV Converted Successfully")
     st.dataframe(df)
