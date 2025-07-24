@@ -99,34 +99,18 @@ if "csv_df" not in st.session_state:
 if uploaded_file:
     try:
         try:
+        try:
             df = pd.read_csv(uploaded_file, encoding='utf-8')
-        except UnicodeDecodeError:
+            if df.empty or df.columns.size == 1:
+                raise ValueError("Empty or malformed CSV")
+        except Exception:
             try:
                 df = pd.read_csv(uploaded_file, encoding='utf-8-sig')
-            except UnicodeDecodeError:
-                df = pd.read_csv(uploaded_file, encoding='ISO-8859-1')
+                if df.empty or df.columns.size == 1:
+                    raise ValueError("Empty or malformed CSV")
+            except Exception:
+                df = pd.read_csv(uploaded_file, encoding='ISO-8859-1', sep=None, engine='python')
 
-        required_columns = {'Location_Name', 'x', 'y'}
-        if not required_columns.issubset(df.columns):
-            st.error("CSV must contain 'Location_Name', 'x', and 'y' columns.")
-        else:
-            st.dataframe(df)
-
-            if st.button("Convert Now", key="convert_csv_btn"):
-                try:
-                    df['x_dd'] = df['x'].apply(parse_coordinate)
-                    df['y_dd'] = df['y'].apply(parse_coordinate)
-                    transformer = Transformer.from_crs(input_crs, output_crs, always_xy=True)
-                    df['x_converted'], df['y_converted'] = zip(*df.apply(
-                        lambda row: transformer.transform(row['x_dd'], row['y_dd']), axis=1))
-
-                    to_wgs = Transformer.from_crs(output_crs, "EPSG:4326", always_xy=True)
-                    df['lon_wgs'], df['lat_wgs'] = zip(*df.apply(
-                        lambda row: to_wgs.transform(row['x_converted'], row['y_converted']), axis=1))
-
-                    st.session_state["csv_converted"] = True
-                    st.session_state["csv_df"] = df
-                except Exception as e:
                     st.error(f"Error during CSV conversion: {e}")
 
     except Exception as e:
