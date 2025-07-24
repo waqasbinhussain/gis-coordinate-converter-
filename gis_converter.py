@@ -113,9 +113,7 @@ if uploaded_file:
                 st.error("Failed to read the file. Please ensure it's a valid CSV with headers: Location_Name, x, y")
             else:
                 st.session_state["csv_df"] = df
-                st.session_state["csv_converted"] = False
-        st.session_state["csv_converted"] = False
-
+                        
         if st.button("Convert Now", key="convert_csv_btn"):
             try:
                 df['x_dd'] = df['x'].apply(parse_coordinate)
