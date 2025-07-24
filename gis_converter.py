@@ -89,7 +89,7 @@ st.divider()
 # --- CSV Upload Conversion ---
 st.markdown("### Upload a CSV File with Columns: Location_Name, x, y")
 st.markdown("*Note: The x and y values can be in either Decimal Degrees or DMS format like `51°36'25.0\"N`, `25°10'24.17\"N`*")
-uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
+uploaded_file = st.file_uploader("Choose a CSV or Excel file", type=["csv", "xlsx"])
 
 if "csv_converted" not in st.session_state:
     st.session_state["csv_converted"] = False
@@ -98,10 +98,13 @@ if "csv_df" not in st.session_state:
 
 if uploaded_file:
     try:
-        try:
-            df = pd.read_csv(uploaded_file, encoding='utf-8')
-            if df.empty or df.columns.size == 1:
-                raise ValueError("Empty or malformed CSV")
+        if uploaded_file.name.endswith('.xlsx'):
+            df = pd.read_excel(uploaded_file)
+        else:
+            try:
+                df = pd.read_csv(uploaded_file, encoding='utf-8')
+                if df.empty or df.columns.size == 1:
+                    raise ValueError("Empty or malformed CSV")
         except Exception:
             try:
                 df = pd.read_csv(uploaded_file, encoding='utf-8-sig')
@@ -109,6 +112,8 @@ if uploaded_file:
                     raise ValueError("Empty or malformed CSV")
             except Exception:
                 df = pd.read_csv(uploaded_file, encoding='ISO-8859-1', sep=',', on_bad_lines='skip', engine='python')
+                if df.empty or df.columns.size == 1:
+                    raise ValueError("No columns to parse from file. Please ensure it is comma-separated and contains headers: Location_Name, x, y")
     except Exception as e:
         st.error(f"Failed to read CSV: {e}")
 
