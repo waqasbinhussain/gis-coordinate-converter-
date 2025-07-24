@@ -111,7 +111,7 @@ if uploaded_file:
                     if df.empty or df.columns.size == 1:
                         raise ValueError("Empty or malformed CSV")
                 except Exception:
-                    # Removed duplicate parsing fallback
+                                        pass  # intentionally left blank after exception to avoid IndentationError
 
                 # Removed duplicate parsing fallback
     
